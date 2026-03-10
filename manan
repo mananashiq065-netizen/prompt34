@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PromptForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0b;color:#e8e4dc;font-family:'Crimson Pro',Georgia,serif;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:#111;}
+::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+@keyframes forge-pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:.96}95%{opacity:.88}97%{opacity:.98}}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.2)}50%{box-shadow:0 0 40px rgba(249,115,22,.4)}}
+.scanline{position:fixed;inset:0;pointer-events:none;z-index:100;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);opacity:.5;}
+.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:400px;border-radius:50%;background:radial-gradient(ellipse,rgba(249,115,22,.06) 0%,transparent 70%);pointer-events:none;}
+.wrap{max-width:760px;margin:0 auto;padding:48px 24px 80px;position:relative;z-index:1;}
+.header{text-align:center;margin-bottom:56px;animation:rise .6s ease both;}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;}
+.diamond{width:32px;height:32px;clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);animation:flicker 4s ease-in-out infinite;}
+.diamond.a{background:linear-gradient(135deg,#f97316,#c2410c);}
+.diamond.b{background:linear-gradient(135deg,#c2410c,#f97316);animation-delay:.3s;}
+h1{font-size:36px;font-weight:300;letter-spacing:.14em;text-transform:uppercase;color:#f5f0e8;text-shadow:0 0 40px rgba(249,115,22,.3);}
+.subtitle{color:#6a6058;font-size:14px;font-style:italic;letter-spacing:.04em;}
+.divider{width:80px;height:1px;background:linear-gradient(90deg,transparent,#f97316,transparent);margin:18px auto 0;}
+.tag{background:rgba(249,115,22,.12);color:#f97316;border:1px solid rgba(249,115,22,.3);border-radius:4px;padding:2px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;}
+.tag.green{background:rgba(34,197,94,.1);color:#22c55e;border-color:rgba(34,197,94,.25);}
+.tag.purple{background:rgba(139,92,246,.1);color:#a78bfa;border-color:rgba(139,92,246,.25);}
+.card{border-radius:8px;overflow:hidden;animation:rise .5s ease both;}
+.card-dark{background:#111013;border:1px solid #1e1b18;}
+.card-orange{background:#110e0a;border:1px solid rgba(249,115,22,.18);}
+.card-green{background:#0a110e;border:1px solid rgba(34,197,94,.2);}
+.card-subtle{background:#100f0d;border:1px solid #201e1a;}
+.card-purple{background:#0c0c14;border:1px solid rgba(139,92,246,.18);}
+.card-q{background:#0d0f0d;border:1px solid #1a201a;}
+.card-orig{background:#0d0d10;border:1px solid #1a1720;}
+.card-head{padding:12px 20px;border-bottom:1px solid #1e1b18;display:flex;align-items:center;gap:10;}
+.dot{width:8px;height:8px;border-radius:50%;background:#f97316;box-shadow:0 0 10px #f97316;animation:flicker 3s infinite;}
+.dot.green{background:#22c55e;box-shadow:0 0 10px #22c55e;}
+.mono-sm{font-family:'JetBrains Mono',monospace;font-size:11px;color:#3a3530;letter-spacing:.1em;text-transform:uppercase;}
+textarea{background:transparent;border:none;outline:none;color:#d4cfc7;font-size:16px;line-height:1.7;padding:20px;font-family:'Crimson Pro',serif;width:100%;resize:none;}
+textarea::placeholder{color:#3a3530;}
+.card-foot{padding:12px 20px;border-top:1px solid #1e1b18;display:flex;justify-content:space-between;align-items:center;}
+.hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:#2a2620;}
+.btn{border:none;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;transition:all .2s;padding:10px 28px;}
+.btn-forge{background:#f97316;color:#fff;animation:glow-pulse 2s ease-in-out infinite;}
+.btn-forge:hover{background:#ea6b10;transform:translateY(-1px);}
+.btn-forge:disabled{opacity:.35;cursor:not-allowed;animation:none;}
+.btn-reset{background:transparent;color:#3a3530;border:1px solid #252220;padding:8px 18px;font-size:11px;}
+.btn-reset:hover{color:#f97316;border-color:rgba(249,115,22,.3);}
+.btn-copy{padding:5px 14px;font-size:10px;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;transition:all .2s;border:1px solid rgba(34,197,94,.12);background:rgba(34,197,94,.06);color:#3a6a4a;}
+.btn-copy.done{background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.35);}
+.stack{display:flex;flex-direction:column;gap:18px;}
+.spinner{display:flex;gap:6px;align-items:center;justify-content:center;}
+.spinner span{width:8px;height:8px;border-radius:50%;background:#f97316;display:inline-block;}
+.spinner span:nth-child(1){animation:forge-pulse 1.2s ease-in-out 0s infinite;}
+.spinner span:nth-child(2){animation:forge-pulse 1.2s ease-in-out .2s infinite;}
+.spinner span:nth-child(3){animation:forge-pulse 1.2s ease-in-out .4s infinite;}
+.analyzing{text-align:center;padding:60px 0;}
+.analyzing p{margin-top:20px;color:#3a3530;font-family:'JetBrains Mono',monospace;font-size:12px;font-style:italic;}
+.weakness-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.weakness{background:rgba(239,68,68,.07);color:#e87070;border:1px solid rgba(239,68,68,.18);border-radius:4px;padding:3px 12px;font-size:12px;font-family:'JetBrains Mono',monospace;}
+.q-item{padding:16px 20px;border-bottom:1px solid #141814;}
+.q-item:last-of-type{border-bottom:none;}
+.q-label{color:#f97316;font-family:'JetBrains Mono',monospace;font-size:11px;margin-right:10px;}
+.q-text{color:#c0b8a8;font-size:15px;line-height:1.6;margin-bottom:10px;}
+.a-input{width:100%;background:#0a0c0a;border:1px solid #1c221c;border-radius:4px;outline:none;color:#b0a898;font-size:14px;padding:10px 14px;font-family:'Crimson Pro',serif;line-height:1.6;resize:none;}
+.a-input:focus{border-color:#2d4a2d;}
+.a-input::placeholder{color:#242a24;}
+.forging-row{display:flex;align-items:center;gap:10;color:#4a4540;font-family:'JetBrains Mono',monospace;font-size:11px;}
+pre.result{margin:0;padding:20px;color:#b8d0b0;font-size:13px;line-height:1.85;white-space:pre-wrap;word-break:break-word;font-family:'JetBrains Mono',monospace;max-height:420px;overflow-y:auto;}
+.why-list{list-style:none;display:flex;flex-direction:column;gap:10;}
+.why-item{display:flex;gap:12px;align-items:flex-start;}
+.why-dot{color:#f97316;flex-shrink:0;margin-top:2px;}
+.why-text{color:#9a9080;font-size:15px;line-height:1.6;}
+.upgrade-text{color:#8070b0;font-size:15px;line-height:1.7;font-style:italic;}
+.center{display:flex;justify-content:center;padding-top:8px;}
+.footer{text-align:center;margin-top:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#1a1815;letter-spacing:.12em;}
+.hidden{display:none;}
+.orig-text{color:#504840;font-style:italic;font-size:15px;line-height:1.6;margin-top:8px;}
+.diag-text{color:#9a9080;font-size:15px;line-height:1.7;font-style:italic;margin:14px 0;}
+.q-head{padding:14px 20px;border-bottom:1px solid #1a201a;display:flex;align-items:center;justify-content:space-between;}
+.q-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:#242820;}
+.q-foot{padding:14px 20px;border-top:1px solid #1a201a;display:flex;justify-content:space-between;align-items:center;}
+.res-head{padding:14px 20px;border-bottom:1px solid rgba(34,197,94,.1);display:flex;align-items:center;justify-content:space-between;}
+.res-label{display:flex;align-items:center;gap:10;}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="glow"></div>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="diamond a"></div>
+      <h1>PromptForge</h1>
+      <div class="diamond b"></div>
+    </div>
+    <p class="subtitle">Transform weak prompts into precision instruments</p>
+    <div class="divider"></div>
+  </div>
+
+  <!-- STAGE: IDLE -->
+  <div id="stage-idle" class="card card-dark">
+    <div class="card-head">
+      <div class="dot"></div>
+      <span class="mono-sm">raw prompt input</span>
+    </div>
+    <textarea id="raw-input" rows="5" placeholder="Paste your rough prompt here... don't worry if it's vague or incomplete."></textarea>
+    <div class="card-foot">
+      <span class="hint">ENTER YOUR PROMPT ABOVE</span>
+      <button class="btn btn-forge" id="btn-start" onclick="startForge()">Begin Forge →</button>
+    </div>
+  </div>
+
+  <!-- STAGE: ANALYZING -->
+  <div id="stage-analyzing" class="analyzing hidden">
+    <div class="spinner"><span></span><span></span><span></span></div>
+    <p>analyzing prompt architecture...</p>
+  </div>
+
+  <!-- STAGE: QUESTIONS -->
+  <div id="stage-questions" class="stack hidden">
+    <div class="card card-orig">
+      <div style="padding:16px 20px;">
+        <span class="tag">Original Prompt</span>
+        <p class="orig-text" id="orig-display"></p>
+      </div>
+    </div>
+    <div class="card card-orange">
+      <div style="padding:20px;">
+        <span class="tag">Diagnostic</span>
+        <p class="diag-text" id="diag-summary"></p>
+        <div class="weakness-list" id="weakness-list"></div>
+      </div>
+    </div>
+    <div class="card card-q">
+      <div class="q-head">
+        <span class="tag">Clarifying Questions</span>
+        <span class="q-hint">answer all to forge</span>
+      </div>
+      <div id="questions-list"></div>
+      <div class="q-foot">
+        <button class="btn btn-reset" onclick="resetAll()">← Reset</button>
+        <button class="btn btn-forge" id="btn-forge" onclick="forgePrompt()" disabled>Forge Prompt ⚡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE: FORGING -->
+  <div id="stage-forging" class="analyzing hidden">
+    <div class="spinner"><span></span><span></span><span></span></div>
+    <p>forging your optimized prompt...</p>
+  </div>
+
+  <!-- STAGE: DONE -->
+  <div id="stage-done" class="stack hidden">
+    <div class="card card-green">
+      <div class="res-head">
+        <div class="res-label">
+          <div class="dot green"></div>
+          <span class="tag green">Optimized Prompt</span>
+        </div>
+        <button class="btn-copy" id="copy-btn" onclick="copyPrompt()">COPY</button>
+      </div>
+      <pre class="result" id="result-prompt"></pre>
+    </div>
+    <div class="card card-subtle">
+      <div style="padding:20px;">
+        <span class="tag">Why This Is Better</span>
+        <ul class="why-list" id="why-list" style="margin-top:14px;"></ul>
+      </div>
+    </div>
+    <div class="card card-purple" id="upgrade-card">
+      <div style="padding:20px;">
+        <span class="tag purple">⚡ Advanced Upgrade</span>
+        <p class="upgrade-text" id="upgrade-text" style="margin-top:12px;"></p>
+      </div>
+    </div>
+    <div class="center">
+      <button class="btn btn-forge" onclick="resetAll()">Forge Another →</button>
+    </div>
+  </div>
+
+  <div class="footer">PROMPTFORGE — PRECISION PROMPT ENGINEERING</div>
+</div>
+
+<script>
+const SYSTEM = `You are PromptForge — a world-class AI prompt engineer. You operate in precise stages.
+
+When asked to DIAGNOSE, output ONLY this JSON (no markdown, no code fences):
+{"stage":"diagnostic","weaknesses":["short phrase 1","short phrase 2","short phrase 3"],"summary":"1-2 sentence diagnosis"}
+
+When asked for QUESTIONS, output ONLY this JSON:
+{"stage":"questions","questions":["question 1","question 2","question 3","question 4"]}
+
+When asked to FORGE, output ONLY this JSON:
+{"stage":"forge","optimized_prompt":"full structured prompt with ROLE / OBJECTIVE / CONTEXT / INPUT / PROCESS / OUTPUT FORMAT / CONSTRAINTS / QUALITY STANDARD sections","why_better":["improvement 1","improvement 2","improvement 3"],"advanced_upgrade":"one advanced technique"}
+
+Rules: Output ONLY valid JSON. No extra text. No markdown fences.`;
+
+let conversation = [];
+let questionsData = [];
+let originalPrompt = '';
+let forgedPrompt = '';
+
+function show(id) {
+  ['stage-idle','stage-analyzing','stage-questions','stage-forging','stage-done']
+    .forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+async function callClaude(messages) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: SYSTEM,
+      messages
+    })
+  });
+  const data = await res.json();
+  const text = (data.content || []).map(b => b.text || '').join('');
+  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
+  catch { return null; }
+}
+
+async function startForge() {
+  const raw = document.getElementById('raw-input').value.trim();
+  if (!raw) return;
+  originalPrompt = raw;
+  show('stage-analyzing');
+  conversation = [{role:'user', content:`DIAGNOSE this prompt: "${raw}"`}];
+  const diag = await callClaude(conversation);
+  if (!diag) { alert('Error analyzing. Please try again.'); show('stage-idle'); return; }
+  conversation.push({role:'assistant', content: JSON.stringify(diag)});
+  conversation.push({role:'user', content:'Now give me the QUESTIONS.'});
+  const qs = await callClaude(conversation);
+  if (!qs) { alert('Error generating questions.'); show('stage-idle'); return; }
+  conversation.push({role:'assistant', content: JSON.stringify(qs)});
+  questionsData = qs.questions || [];
+  renderQuestions(diag, questionsData);
+  show('stage-questions');
+}
+
+function renderQuestions(diag, questions) {
+  document.getElementById('orig-display').textContent = `"${originalPrompt}"`;
+  document.getElementById('diag-summary').textContent = diag.summary || '';
+  const wl = document.getElementById('weakness-list');
+  wl.innerHTML = (diag.weaknesses || []).map(w => `<span class="weakness">⚠ ${w}</span>`).join('');
+  const ql = document.getElementById('questions-list');
+  ql.innerHTML = questions.map((q, i) => `
+    <div class="q-item">
+      <p class="q-text"><span class="q-label">Q${i+1}</span>${q}</p>
+      <textarea class="a-input" rows="2" placeholder="Your answer..." id="ans-${i}" oninput="checkAnswers()"></textarea>
+    </div>
+  `).join('');
+}
+
+function checkAnswers() {
+  const allFilled = questionsData.every((_, i) => {
+    const el = document.getElementById(`ans-${i}`);
+    return el && el.value.trim();
+  });
+  document.getElementById('btn-forge').disabled = !allFilled;
+}
+
+async function forgePrompt() {
+  show('stage-forging');
+  const answerText = questionsData.map((q, i) => {
+    const el = document.getElementById(`ans-${i}`);
+    return `Q: ${q}\nA: ${el ? el.value : '(no answer)'}`;
+  }).join('\n\n');
+  conversation.push({role:'user', content:`Here are my answers:\n\n${answerText}\n\nNow FORGE the optimized prompt.`});
+  const result = await callClaude(conversation);
+  if (!result) { alert('Error forging prompt.'); show('stage-questions'); return; }
+  forgedPrompt = result.optimized_prompt || '';
+  document.getElementById('result-prompt').textContent = forgedPrompt;
+  const wl = document.getElementById('why-list');
+  wl.innerHTML = (result.why_better || []).map(item =>
+    `<li class="why-item"><span class="why-dot">◆</span><span class="why-text">${item}</span></li>`
+  ).join('');
+  const upg = result.advanced_upgrade || '';
+  document.getElementById('upgrade-text').textContent = upg;
+  document.getElementById('upgrade-card').style.display = upg ? '' : 'none';
+  show('stage-done');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyPrompt() {
+  navigator.clipboard.writeText(forgedPrompt).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('done'); }, 2000);
+  });
+}
+
+function resetAll() {
+  conversation = [];
+  questionsData = [];
+  originalPrompt = '';
+  forgedPrompt = '';
+  document.getElementById('raw-input').value = '';
+  show('stage-idle');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('raw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) startForge();
+});
+</script>
+</body>
+</html>
