@@ -1,4 +1,4 @@
-const CACHE = 'promptforge-v1';
+const CACHE = 'promptforge-v2';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -7,15 +7,19 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
+  // Delete ALL old caches
   e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    Promise.all(keys.filter(k => k !== CACHE).map(k => {
+      console.log('Deleting old cache:', k);
+      return caches.delete(k);
+    }))
   ));
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
   if (!e.request.url.startsWith('http')) return;
-  if (e.request.url.includes('api.anthropic.com')) return;
+  if (e.request.url.includes('pollinations.ai')) return;
   if (e.request.url.includes('fonts.googleapis.com')) return;
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {

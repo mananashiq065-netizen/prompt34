@@ -230,24 +230,29 @@ function show(id) {
 }
 
 async function callClaude(messages) {
-  // Build messages array with system prompt prepended
   const allMsgs = [
-    { role: 'user', content: SYSTEM + '\n\nNow begin. ' + messages[0].content },
-    ...messages.slice(1)
+    { role: 'system', content: SYSTEM },
+    ...messages
   ];
-  const res = await fetch('https://text.pollinations.ai/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: allMsgs,
-      model: 'openai',
-      seed: Math.floor(Math.random() * 9999),
-      jsonMode: true
-    })
-  });
-  const text = await res.text();
-  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
-  catch { return null; }
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: allMsgs,
+        model: 'openai-large',
+        jsonMode: true,
+        seed: Math.floor(Math.random() * 99999)
+      })
+    });
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const text = await res.text();
+    const clean = text.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    console.error('API error:', e);
+    return null;
+  }
 }
 
 async function startForge() {
