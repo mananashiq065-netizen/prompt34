@@ -230,18 +230,22 @@ function show(id) {
 }
 
 async function callClaude(messages) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  // Build messages array with system prompt prepended
+  const allMsgs = [
+    { role: 'user', content: SYSTEM + '\n\nNow begin. ' + messages[0].content },
+    ...messages.slice(1)
+  ];
+  const res = await fetch('https://text.pollinations.ai/', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: SYSTEM,
-      messages
+      messages: allMsgs,
+      model: 'openai',
+      seed: Math.floor(Math.random() * 9999),
+      jsonMode: true
     })
   });
-  const data = await res.json();
-  const text = (data.content || []).map(b => b.text || '').join('');
+  const text = await res.text();
   try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
   catch { return null; }
 }
