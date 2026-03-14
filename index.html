@@ -230,24 +230,25 @@ function show(id) {
 }
 
 async function callClaude(messages) {
-  const allMsgs = [
-    { role: 'system', content: SYSTEM },
-    ...messages
-  ];
   try {
+    const payload = {
+      messages: [
+        { role: 'system', content: SYSTEM },
+        ...messages
+      ],
+      model: 'openai',
+      seed: Math.floor(Math.random() * 9999),
+      jsonMode: true
+    };
     const res = await fetch('https://text.pollinations.ai/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: allMsgs,
-        model: 'openai-large',
-        jsonMode: true,
-        seed: Math.floor(Math.random() * 99999)
-      })
+      body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error('API error ' + res.status);
-    const text = await res.text();
-    const clean = text.replace(/```json|```/g,'').trim();
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.text();
+    // Strip any markdown fences
+    const clean = raw.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();
     return JSON.parse(clean);
   } catch(e) {
     console.error('API error:', e);
